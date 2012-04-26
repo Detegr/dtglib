@@ -104,7 +104,7 @@ namespace dtglib
 		if(ret>0 && FD_ISSET(m_Fd, &set))
 		{
 			FD_CLR(m_Fd, &set);
-			bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0);
+			bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), MSG_NOSIGNAL);
 			if(bytes==-1)
 			{
 				if(errno==EPIPE || errno==ECONNRESET || errno==ENOTCONN)
