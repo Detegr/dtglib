@@ -16,6 +16,9 @@ namespace dtglib
 		m_Addr.sin_addr=ip.m_Addr;
 		int yes=1;
 		setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
+		#ifdef __APPLE__
+			setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
+		#endif
 	}
 	
 	C_Socket::C_Socket(ushort port, Type type) : m_Fd(0), m_Id(0), m_Ip(), m_Port(port), m_Type(type)
@@ -28,6 +31,9 @@ namespace dtglib
 		m_Addr.sin_addr.s_addr=htonl(INADDR_ANY);
 		int yes=1;
 		setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
+		#ifdef __APPLE__
+			setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
+		#endif
 	}
 	const C_Socket& C_Socket::operator=(const C_Socket& s)
 	{
@@ -104,7 +110,11 @@ namespace dtglib
 		if(ret>0 && FD_ISSET(m_Fd, &set))
 		{
 			FD_CLR(m_Fd, &set);
-			bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), MSG_NOSIGNAL);
+			#ifdef __APPLE__
+				bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0);
+			#else
+				bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), MSG_NOSIGNAL);
+			#endif
 			if(bytes==-1)
 			{
 				if(errno==EPIPE || errno==ECONNRESET || errno==ENOTCONN)
