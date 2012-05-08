@@ -1,6 +1,7 @@
 #ifndef _DTGLIB_PACKET_H_468969b64f58eb16f759ec07dbc68f5fa9557021
 #define _DTGLIB_PACKET_H_468969b64f58eb16f759ec07dbc68f5fa9557021
 
+#include "Base.h"
 #include "Concurrency.h"
 #include <vector>
 

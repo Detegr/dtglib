@@ -14,6 +14,7 @@
 #ifdef _WIN32
 	#pragma warning( disable : 4800 )
 #else
+	#include <errno.h>
 	#include <arpa/inet.h>
 #endif
 

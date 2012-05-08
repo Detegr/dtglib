@@ -1,5 +1,5 @@
-#include "Base.h"
 #include "Packet.h"
+#include <string>
 
 namespace dtglib
 {
