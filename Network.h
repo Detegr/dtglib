@@ -19,7 +19,6 @@
 
 namespace dtglib
 {
-	
 	#ifdef _WIN32
 		class C_SocketInitializer
 		{
@@ -128,5 +127,16 @@ namespace dtglib
 			int	M_WaitWrite(uint timeoutms);
 			int	M_WaitReadWrite(uint timeoutms);
 	};
+	
+	inline std::string g_SocketError(const char* err, int type=-1)
+	{
+		std::string error;
+		error+=err;
+		error+=": ";
+		error+=strerror(errno);
+		error+=" (Type: ";
+		error+=type==SOCK_STREAM?"TCP)":"UDP)";
+		return error;
+	}
 }
 #endif
