@@ -4,6 +4,8 @@
 #include "Base.h"
 #include "Concurrency.h"
 #include <vector>
+#include <string>
+#include <cstring>
 
 namespace dtglib
 {

@@ -1,5 +1,4 @@
 #include "Packet.h"
-#include <string>
 
 namespace dtglib
 {

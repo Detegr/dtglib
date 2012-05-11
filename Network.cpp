@@ -6,7 +6,7 @@
 
 namespace dtglib
 {
-	C_Socket::C_Socket(C_IpAddress& ip, ushort port, C_Socket::Type type) : m_Fd(0), m_Id(0), m_Ip(ip), m_Port(port), m_Type(type)
+	C_Socket::C_Socket(const C_IpAddress& ip, ushort port, C_Socket::Type type) : m_Fd(0), m_Id(0), m_Ip(ip), m_Port(port), m_Type(type)
 	{
 		m_Fd=socket(AF_INET, type, type==TCP ? IPPROTO_TCP : IPPROTO_UDP);
 		if(m_Fd<=0) throw std::runtime_error("Failed to create socket.");
@@ -85,6 +85,27 @@ namespace dtglib
 		for(int i=0;i<r;++i) p<<buf[i];
 		return true;
 	}
+	bool C_UdpSocket::M_Receive(C_Packet& p, C_IpAddress* ip, ushort* port)
+	{
+		uchar buf[C_Packet::MAXSIZE];
+		struct sockaddr_in a;
+		socklen_t len=sizeof(a);
+		ssize_t r=recvfrom(m_Fd, (char*)buf, C_Packet::MAXSIZE, 0, (struct sockaddr*)&a, &len);
+		if(r<0) return false;
+		for(int i=0;i<r;++i) p<<buf[i];
+		if(ip) *ip=C_IpAddress(a.sin_addr);
+		if(port) *port=ntohs(a.sin_port);
+		return true;
+	}
+	bool C_UdpSocket::M_Send(C_Packet& p)
+	{
+		struct sockaddr_in a;
+		a.sin_family=AF_INET;
+		a.sin_port=this->m_Port;
+		a.sin_addr=this->m_Ip.m_Addr;
+		socklen_t len=sizeof(a);
+		sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len);
+	}
 	
 	void C_TcpSocket::M_Connect()
 	{
@@ -152,7 +173,7 @@ namespace dtglib
 		FD_ZERO(&m_MasterSet);
 		FD_ZERO(&m_ResultSet);
 	}
-	void C_Selector::M_Add(C_Socket& s)
+	void C_Selector::M_Add(const C_Socket& s)
 	{
 		if(s.m_Fd!=-1)
 		{
@@ -160,7 +181,7 @@ namespace dtglib
 			FD_SET(s.m_Fd, &m_MasterSet);
 		}
 	}
-	bool C_Selector::M_IsReady(C_Socket& s)
+	bool C_Selector::M_IsReady(const C_Socket& s)
 	{
 		if(s.m_Fd!=-1) return FD_ISSET(s.m_Fd, &m_ResultSet);
 		else return false;
@@ -171,7 +192,7 @@ namespace dtglib
 		FD_ZERO(&m_MasterSet);
 	}
 	
-	void C_Selector::M_Remove(C_Socket& s)
+	void C_Selector::M_Remove(const C_Socket& s)
 	{
 		if(s.M_Fd()!=-1)
 		{

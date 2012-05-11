@@ -45,7 +45,7 @@ namespace dtglib
 	{
 		friend class C_Socket;
 		friend class C_TcpSocket;
-		//friend struct C_UdpSocket;
+		friend struct C_UdpSocket;
 		private:
 			struct in_addr	m_Addr;
 			void		M_StrToAddr(const char* a);
@@ -63,7 +63,8 @@ namespace dtglib
 	
 	class C_Socket
 	{
-		friend class C_Selector;
+		friend struct	C_UdpSocket;
+		friend class	C_Selector;
 		protected:
 			int		m_Fd;
 			ushort		m_Id;
@@ -79,7 +80,7 @@ namespace dtglib
 				TCP=SOCK_STREAM,
 				UDP=SOCK_DGRAM
 			};
-			C_Socket(C_IpAddress& ip, ushort port, Type type);
+			C_Socket(const C_IpAddress& ip, ushort port, Type type);
 			C_Socket(ushort port, Type type);
 			C_Socket(const C_Socket& s) {*this=s;}
 			virtual ~C_Socket() {}
@@ -100,8 +101,7 @@ namespace dtglib
 			C_TcpSocket(C_IpAddress& ip, ushort port, Type type, int fd) : C_Socket(ip, port, type) {this->m_Fd=fd;}
 		public:
 			C_TcpSocket() {}
-			C_TcpSocket(C_IpAddress ip, ushort port) : C_Socket(ip, port, TCP) {}
-			C_TcpSocket(C_IpAddress& ip, ushort port) : C_Socket(ip, port, TCP) {}
+			C_TcpSocket(const C_IpAddress& ip, ushort port) : C_Socket(ip, port, TCP) {}
 			C_TcpSocket(ushort port) : C_Socket(port, TCP) {}
 			C_TcpSocket*	M_Accept(); 
 			void 		M_Listen(int maxfds=10);
@@ -110,6 +110,15 @@ namespace dtglib
 			void 		M_Clear();
 			bool		M_Send(C_Packet& p); 
 			bool		M_Receive(C_Packet& p);
+	};
+
+	struct C_UdpSocket : public C_Socket
+	{
+		C_UdpSocket() {}
+		C_UdpSocket(const C_IpAddress& ip, ushort port) : C_Socket(ip,port,UDP) {}
+		C_UdpSocket(ushort port) : C_Socket(port,UDP) {}
+		bool M_Send(C_Packet& p);
+		bool M_Receive(C_Packet& p, C_IpAddress* ip=NULL, ushort* port=NULL);
 	};
 	
 	class C_Selector
@@ -120,9 +129,9 @@ namespace dtglib
 			fd_set	m_ResultSet;
 		public:
 			C_Selector();
-			void	M_Add(C_Socket& s);
-			bool	M_IsReady(C_Socket& s);
-			void	M_Remove(C_Socket& s);
+			void	M_Add(const C_Socket& s);
+			bool	M_IsReady(const C_Socket& s);
+			void	M_Remove(const C_Socket& s);
 			void	M_Clear();
 			int	M_Wait(uint timeoutms);
 			int	M_WaitWrite(uint timeoutms);
