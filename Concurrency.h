@@ -77,7 +77,7 @@ namespace dtglib
 			#ifndef _WIN32
 				~C_CondVar() {pthread_cond_destroy(&m_Cond);}
 			#endif
-			 void M_Wait();
+			 void M_Wait(uint timeoutms=~0U);
 			 void M_SignalOne();
 			 void M_Signal();
 	};

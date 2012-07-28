@@ -133,9 +133,9 @@ namespace dtglib
 			bool	M_IsReady(const C_Socket& s);
 			void	M_Remove(const C_Socket& s);
 			void	M_Clear();
-			int	M_Wait(uint timeoutms);
-			int	M_WaitWrite(uint timeoutms);
-			int	M_WaitReadWrite(uint timeoutms);
+			int	M_Wait(uint timeoutms=~0U);
+			int	M_WaitWrite(uint timeoutms=~0U);
+			int	M_WaitReadWrite(uint timeoutms=~0U);
 	};
 	
 	inline std::string g_SocketError(const char* err, int type=-1)

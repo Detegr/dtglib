@@ -2,6 +2,8 @@
 #include <stdexcept>
 #ifdef _WIN32
 	#include <process.h>
+#else
+	#include <sys/time.h>
 #endif
 
 namespace dtglib
@@ -120,15 +122,24 @@ namespace dtglib
 			pthread_cond_init(&m_Cond,NULL);
 		#endif
 	}
-	void C_CondVar::M_Wait()
+	void C_CondVar::M_Wait(uint timeoutms)
 	{
 		#ifdef _WIN32
 			m_Mutex.M_Lock();
-			SleepConditionVariableCS(&m_Cond, &m_Mutex.m_Mutex, INFINITE);
+			SleepConditionVariableCS(&m_Cond, &m_Mutex.m_Mutex, timeoutms==~0U?INFINITE:timeoutms);
 			m_Mutex.M_Unlock();
 		#else
 			m_Mutex.M_Lock();
-			pthread_cond_wait(&m_Cond, &m_Mutex.m_Mutex);
+			if(timeoutms==~0U) pthread_cond_wait(&m_Cond, &m_Mutex.m_Mutex);
+			else
+			{
+				struct timeval tv;
+				struct timespec ts;
+				gettimeofday(&tv, NULL);
+				ts.tv_sec=tv.tv_sec+(timeoutms/1000);
+				ts.tv_nsec=((tv.tv_usec*1000)+((timeoutms%1000)*1000000));
+				pthread_cond_timedwait(&m_Cond, &m_Mutex.m_Mutex, &ts);
+			}
 			m_Mutex.M_Unlock();
 		#endif
 	}
