@@ -74,6 +74,7 @@ namespace dtglib
 			ushort		m_Id;
 			C_IpAddress	m_Ip;
 			ushort		m_Port;
+			ushort		m_NetPort;
 			int		m_Type;
 			sockaddr_in	m_Addr;
 	
@@ -122,6 +123,7 @@ namespace dtglib
 		C_UdpSocket(const C_IpAddress& ip, ushort port) : C_Socket(ip,port,UDP) {}
 		C_UdpSocket(ushort port) : C_Socket(port,UDP) {}
 		bool M_Send(C_Packet& p);
+		bool M_Send(C_Packet& p, const C_IpAddress& ip, ushort port);
 		bool M_Receive(C_Packet& p, C_IpAddress* ip=NULL, ushort* port=NULL);
 	};
 	

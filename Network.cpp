@@ -6,13 +6,13 @@
 
 namespace dtglib
 {
-	C_Socket::C_Socket(const C_IpAddress& ip, ushort port, C_Socket::Type type) : m_Fd(0), m_Id(0), m_Ip(ip), m_Port(port), m_Type(type)
+	C_Socket::C_Socket(const C_IpAddress& ip, ushort port, C_Socket::Type type) : m_Fd(0), m_Id(0), m_Ip(ip), m_Port(port), m_NetPort(htons(port)), m_Type(type)
 	{
 		m_Fd=socket(AF_INET, type, type==TCP ? IPPROTO_TCP : IPPROTO_UDP);
 		if(m_Fd<=0) throw std::runtime_error("Failed to create socket.");
 		memset(&m_Addr, 0, sizeof(m_Addr));
 		m_Addr.sin_family=AF_INET;
-		m_Addr.sin_port=htons(port);
+		m_Addr.sin_port=m_NetPort;
 		m_Addr.sin_addr=ip.m_Addr;
 		int yes=1;
 		setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
@@ -21,13 +21,13 @@ namespace dtglib
 		#endif
 	}
 	
-	C_Socket::C_Socket(ushort port, Type type) : m_Fd(0), m_Id(0), m_Ip(), m_Port(port), m_Type(type)
+	C_Socket::C_Socket(ushort port, Type type) : m_Fd(0), m_Id(0), m_Ip(), m_Port(port), m_NetPort(htons(port)), m_Type(type)
 	{
 		m_Fd=socket(AF_INET, type, type==TCP ? IPPROTO_TCP : IPPROTO_UDP);
 		if(m_Fd<=0) throw std::runtime_error(g_SocketError("Socket"));
 		memset(&m_Addr, 0, sizeof(m_Addr));
 		m_Addr.sin_family=AF_INET;
-		m_Addr.sin_port=htons(port);
+		m_Addr.sin_port=m_NetPort;
 		m_Addr.sin_addr.s_addr=htonl(INADDR_ANY);
 		int yes=1;
 		setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
@@ -39,6 +39,7 @@ namespace dtglib
 	{
 		m_Ip=s.m_Ip;
 		m_Port=s.m_Port;
+		m_NetPort=s.m_NetPort;
 		m_Fd=s.m_Fd;
 		m_Type=s.m_Type;
 		m_Addr=s.m_Addr;
@@ -85,6 +86,7 @@ namespace dtglib
 		for(int i=0;i<r;++i) p<<buf[i];
 		return true;
 	}
+
 	bool C_UdpSocket::M_Receive(C_Packet& p, C_IpAddress* ip, ushort* port)
 	{
 		uchar buf[C_Packet::MAXSIZE];
@@ -97,14 +99,27 @@ namespace dtglib
 		if(port) *port=ntohs(a.sin_port);
 		return true;
 	}
+
 	bool C_UdpSocket::M_Send(C_Packet& p)
 	{
 		struct sockaddr_in a;
 		a.sin_family=AF_INET;
-		a.sin_port=this->m_Port;
+		a.sin_port=this->m_NetPort;
 		a.sin_addr=this->m_Ip.m_Addr;
 		socklen_t len=sizeof(a);
-		sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len);
+		if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) != 0) return false;
+		else return true;
+	}
+
+	bool C_UdpSocket::M_Send(C_Packet& p, const C_IpAddress& ip, ushort port)
+	{
+		struct sockaddr_in a;
+		a.sin_family=AF_INET;
+		a.sin_port=htons(port);
+		a.sin_addr=ip.m_Addr;
+		socklen_t len=sizeof(a);
+		if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) != 0) return false;
+		else return true;
 	}
 	
 	void C_TcpSocket::M_Connect()
