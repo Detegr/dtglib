@@ -10,6 +10,10 @@
 #include <stdexcept>
 #include <string.h>
 #include <fcntl.h>
+#ifdef _WIN32
+#else
+	#include <unistd.h>
+#endif
 
 #ifdef _WIN32
 	#pragma warning( disable : 4800 )
