@@ -15,9 +15,18 @@ namespace dtglib
 		m_Addr.sin_port=m_NetPort;
 		m_Addr.sin_addr=ip.m_Addr;
 		int yes=1;
-		setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
+		int ret=0;
+		struct timeval tv;
+		tv.tv_sec=5;
+		ret=setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
+		assert(ret==0);
+		ret=setsockopt(m_Fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+		assert(ret==0);
+		ret=setsockopt(m_Fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof(tv));
+		assert(ret==0);
 		#ifdef __APPLE__
-			setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
+			ret=setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
+			assert(ret==0);
 		#endif
 	}
 	
@@ -30,9 +39,18 @@ namespace dtglib
 		m_Addr.sin_port=m_NetPort;
 		m_Addr.sin_addr.s_addr=htonl(INADDR_ANY);
 		int yes=1;
-		setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
+		int ret=0;
+		struct timeval tv;
+		tv.tv_sec=5;
+		ret=setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
+		assert(ret==0);
+		ret=setsockopt(m_Fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+		assert(ret==0);
+		ret=setsockopt(m_Fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof(tv));
+		assert(ret==0);
 		#ifdef __APPLE__
-			setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
+			ret=setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
+			assert(ret==0);
 		#endif
 	}
 	const C_Socket& C_Socket::operator=(const C_Socket& s)
