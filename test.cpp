@@ -117,6 +117,12 @@ int main()
 		C_Thread c(udpclient, &init);
 		c.M_Join();
 		s.M_Join();
+	}
+	{
+		C_UdpSocket sock("localhost", 54300);
+		C_Packet p;
+		if(!sock.M_Receive(p, 1500)) std::cout << "UDP timeout test successful." << std::endl;
+		else std::cout << "UDP timeout test failed." << std::endl;
 		std::cout << "End of UDP test." << std::endl;
 	}
 }

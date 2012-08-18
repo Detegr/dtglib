@@ -115,6 +115,7 @@ namespace dtglib
 			void 		M_Clear();
 			bool		M_Send(C_Packet& p); 
 			bool		M_Receive(C_Packet& p);
+			bool		M_Receive(C_Packet& p, unsigned int timeoutms);
 	};
 
 	struct C_UdpSocket : public C_Socket
@@ -125,6 +126,7 @@ namespace dtglib
 		bool M_Send(C_Packet& p);
 		bool M_Send(C_Packet& p, const C_IpAddress& ip, ushort port);
 		bool M_Receive(C_Packet& p, C_IpAddress* ip=NULL, ushort* port=NULL);
+		bool M_Receive(C_Packet& p, unsigned int timeoutms, C_IpAddress* ip=NULL, ushort* port=NULL);
 	};
 	
 	class C_Selector

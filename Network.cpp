@@ -16,13 +16,7 @@ namespace dtglib
 		m_Addr.sin_addr=ip.m_Addr;
 		int yes=1;
 		int ret=0;
-		struct timeval tv;
-		tv.tv_sec=5;
 		ret=setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
-		assert(ret==0);
-		ret=setsockopt(m_Fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
-		assert(ret==0);
-		ret=setsockopt(m_Fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof(tv));
 		assert(ret==0);
 		#ifdef __APPLE__
 			ret=setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
@@ -42,11 +36,8 @@ namespace dtglib
 		int ret=0;
 		struct timeval tv;
 		tv.tv_sec=5;
+		tv.tv_usec=0;
 		ret=setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
-		assert(ret==0);
-		ret=setsockopt(m_Fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
-		assert(ret==0);
-		ret=setsockopt(m_Fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof(tv));
 		assert(ret==0);
 		#ifdef __APPLE__
 			ret=setsockopt(m_Fd, SOL_SOCKET, SO_NOSIGPIPE, (char*)&yes, sizeof(yes));
@@ -95,7 +86,7 @@ namespace dtglib
 	    M_Close();
 	    this->m_Fd=-1;
 	}
-	
+
 	bool C_TcpSocket::M_Receive(C_Packet& p)
 	{
 		uchar buf[C_Packet::MAXSIZE];
@@ -103,6 +94,20 @@ namespace dtglib
 		if(r<=0) return false;
 		for(int i=0;i<r;++i) p<<buf[i];
 		return true;
+	}
+
+	bool C_TcpSocket::M_Receive(C_Packet& p, unsigned int timeoutms)
+	{
+		fd_set set;
+		FD_ZERO(&set);
+		FD_SET(m_Fd, &set);
+		struct timeval tv;
+		tv.tv_sec=timeoutms/1000;
+		tv.tv_usec=(timeoutms%1000)*1000;
+		ssize_t bytes=-1;
+		int ret=select(m_Fd+1, &set, NULL, NULL, &tv);
+		if(ret>0 && FD_ISSET(m_Fd, &set)) return M_Receive(p);
+		else return false;
 	}
 
 	bool C_UdpSocket::M_Receive(C_Packet& p, C_IpAddress* ip, ushort* port)
@@ -118,15 +123,41 @@ namespace dtglib
 		return true;
 	}
 
+	bool C_UdpSocket::M_Receive(C_Packet& p, unsigned int timeoutms, C_IpAddress* ip, ushort* port)
+	{
+		fd_set set;
+		FD_ZERO(&set);
+		FD_SET(m_Fd, &set);
+		struct timeval tv;
+		tv.tv_sec=timeoutms/1000;
+		tv.tv_usec=(timeoutms%1000)*1000;
+		ssize_t bytes=-1;
+		int ret=select(m_Fd+1, &set, NULL, NULL, &tv);
+		if(ret>0 && FD_ISSET(m_Fd, &set)) return M_Receive(p,ip,port);
+		else return false;
+	}
+
 	bool C_UdpSocket::M_Send(C_Packet& p)
 	{
-		struct sockaddr_in a;
-		a.sin_family=AF_INET;
-		a.sin_port=this->m_NetPort;
-		a.sin_addr=this->m_Ip.m_Addr;
-		socklen_t len=sizeof(a);
-		if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) != 0) return false;
-		else return true;
+		fd_set set;
+		FD_ZERO(&set);
+		FD_SET(m_Fd, &set);
+		struct timeval tv;
+		tv.tv_sec=2;
+		tv.tv_usec=0;
+		ssize_t bytes=-1;
+		int ret=select(m_Fd+1, NULL, &set, NULL, &tv);
+		if(ret>0 && FD_ISSET(m_Fd, &set))
+		{
+			struct sockaddr_in a;
+			a.sin_family=AF_INET;
+			a.sin_port=this->m_NetPort;
+			a.sin_addr=this->m_Ip.m_Addr;
+			socklen_t len=sizeof(a);
+			if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) != 0) return false;
+			else return true;
+		}
+		else return false;
 	}
 
 	bool C_UdpSocket::M_Send(C_Packet& p, const C_IpAddress& ip, ushort port)
