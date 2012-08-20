@@ -29,7 +29,7 @@ namespace dtglib
 			C_Packet(const C_Packet& rhs);
 			C_Packet& 	operator=(const C_Packet& rhs);
 			const uchar* 	M_RawData() const {return &m_Data[0];}
-			void 		M_Clear() {m_Data.clear();}
+			void 		M_Clear() {m_Data.clear();m_Sections.clear();}
 			size_t		M_Size() const {return m_Data.size();}
 			size_t		M_Sections() const {return m_Sections.size();}
 			void 		M_Append(const void* d, size_t len);
