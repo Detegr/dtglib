@@ -41,6 +41,14 @@ namespace dtglib
 			C_Packet& operator>>(std::string& str);
 			C_Packet& operator<<(e_Command c);
 
+			template <class T> C_Packet& operator<<(const std::vector<T>& v)
+			{
+				for(typename std::vector<T>::const_iterator it=v.begin(); it!=v.end(); ++it)
+				{
+					*this << *it;
+				}
+			}
+
 			template <class type> C_Packet&	operator<<(type x)
 			{
 				M_Append(&x, sizeof(type));

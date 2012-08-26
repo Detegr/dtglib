@@ -1,5 +1,5 @@
 CC=g++
-FLAGS=-g3
+FLAGS=-Os
 SOURCES=Concurrency.cpp Network.cpp Packet.cpp
 HEADERS=$(SOURCES:.cpp=.h)
 OBJECTS=$(SOURCES:.cpp=.o)
