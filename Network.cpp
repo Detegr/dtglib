@@ -145,7 +145,6 @@ namespace dtglib
 		struct timeval tv;
 		tv.tv_sec=2;
 		tv.tv_usec=0;
-		ssize_t bytes=-1;
 		int ret=select(m_Fd+1, NULL, &set, NULL, &tv);
 		if(ret>0 && FD_ISSET(m_Fd, &set))
 		{
@@ -154,21 +153,30 @@ namespace dtglib
 			a.sin_port=this->m_NetPort;
 			a.sin_addr=this->m_Ip.m_Addr;
 			socklen_t len=sizeof(a);
-			if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) != 0) return false;
-			else return true;
+			if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) >= 0) return true;
 		}
-		else return false;
+		return false;
 	}
 
 	bool C_UdpSocket::M_Send(C_Packet& p, const C_IpAddress& ip, ushort port)
 	{
-		struct sockaddr_in a;
-		a.sin_family=AF_INET;
-		a.sin_port=htons(port);
-		a.sin_addr=ip.m_Addr;
-		socklen_t len=sizeof(a);
-		if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) != 0) return false;
-		else return true;
+		fd_set set;
+		FD_ZERO(&set);
+		FD_SET(m_Fd, &set);
+		struct timeval tv;
+		tv.tv_sec=2;
+		tv.tv_usec=0;
+		int ret=select(m_Fd+1, NULL, &set, NULL, &tv);
+		if(ret>0 && FD_ISSET(m_Fd, &set))
+		{
+			struct sockaddr_in a;
+			a.sin_family=AF_INET;
+			a.sin_port=htons(port);
+			a.sin_addr=ip.m_Addr;
+			socklen_t len=sizeof(a);
+			if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) >= 0) return true;
+		}
+		return false;
 	}
 	
 	void C_TcpSocket::M_Connect()
