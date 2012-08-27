@@ -131,7 +131,6 @@ namespace dtglib
 		struct timeval tv;
 		tv.tv_sec=timeoutms/1000;
 		tv.tv_usec=(timeoutms%1000)*1000;
-		ssize_t bytes=-1;
 		int ret=select(m_Fd+1, &set, NULL, NULL, &tv);
 		if(ret>0 && FD_ISSET(m_Fd, &set)) return M_Receive(p,ip,port);
 		else return false;
@@ -203,7 +202,7 @@ namespace dtglib
 		if(ret>0 && FD_ISSET(m_Fd, &set))
 		{
 			FD_CLR(m_Fd, &set);
-			#ifdef __APPLE__
+			#if defined(__APPLE__) || defined(_WIN32)
 				bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0);
 			#else
 				bytes=send(m_Fd, (char*)p.M_RawData(), p.M_Size(), MSG_NOSIGNAL);
