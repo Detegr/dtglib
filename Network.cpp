@@ -112,10 +112,16 @@ namespace dtglib
 
 	bool C_UdpSocket::M_Receive(C_Packet& p, C_IpAddress* ip, ushort* port)
 	{
-		uchar buf[C_Packet::MAXSIZE];
+		uchar buf[C_Packet::MAXSIZE_UDP];
 		struct sockaddr_in a;
 		socklen_t len=sizeof(a);
-		ssize_t r=recvfrom(m_Fd, (char*)buf, C_Packet::MAXSIZE, 0, (struct sockaddr*)&a, &len);
+		ssize_t r=recvfrom(m_Fd, (char*)buf, C_Packet::MAXSIZE_UDP, 0, (struct sockaddr*)&a, &len);
+		while(r==C_Packet::MAXSIZE_UDP)
+		{
+			for(int i=0;i<r;++i) p<<buf[i];
+			r=recvfrom(m_Fd, (char*)buf, C_Packet::MAXSIZE_UDP, 0, (struct sockaddr*)&a, &len);
+			if(r<0) return false;
+		}
 		if(r<0) return false;
 		for(int i=0;i<r;++i) p<<buf[i];
 		if(ip) *ip=C_IpAddress(a.sin_addr);
@@ -139,44 +145,41 @@ namespace dtglib
 
 	bool C_UdpSocket::M_Send(C_Packet& p)
 	{
-		fd_set set;
-		FD_ZERO(&set);
-		FD_SET(m_Fd, &set);
-		struct timeval tv;
-		tv.tv_sec=2;
-		tv.tv_usec=0;
-		int ret=select(m_Fd+1, NULL, &set, NULL, &tv);
-		if(ret>0 && FD_ISSET(m_Fd, &set))
+		// Udp socket is always writable
+		struct sockaddr_in a;
+		a.sin_family=AF_INET;
+		a.sin_port=this->m_NetPort;
+		a.sin_addr=this->m_Ip.m_Addr;
+		socklen_t len=sizeof(a);
+		size_t bytes=0;
+		while(p.M_Size()>C_Packet::MAXSIZE_UDP)
 		{
-			struct sockaddr_in a;
-			a.sin_family=AF_INET;
-			a.sin_port=this->m_NetPort;
-			a.sin_addr=this->m_Ip.m_Addr;
-			socklen_t len=sizeof(a);
-			if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) >= 0) return true;
+			bytes=sendto(m_Fd, (char*)p.M_RawData(), C_Packet::MAXSIZE_UDP, 0, (struct sockaddr*)&a, len);
+			p.M_Pop(C_Packet::MAXSIZE_UDP);
+			if(bytes<=0) return false;
 		}
+		bytes=sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len);
+		if(bytes<=0) return false;
 		return false;
 	}
 
 	bool C_UdpSocket::M_Send(C_Packet& p, const C_IpAddress& ip, ushort port)
 	{
-		fd_set set;
-		FD_ZERO(&set);
-		FD_SET(m_Fd, &set);
-		struct timeval tv;
-		tv.tv_sec=2;
-		tv.tv_usec=0;
-		int ret=select(m_Fd+1, NULL, &set, NULL, &tv);
-		if(ret>0 && FD_ISSET(m_Fd, &set))
+		// Udp socket is always writable
+		struct sockaddr_in a;
+		a.sin_family=AF_INET;
+		a.sin_port=htons(port);
+		a.sin_addr=ip.m_Addr;
+		socklen_t len=sizeof(a);
+		size_t bytes=0;
+		while(p.M_Size()>C_Packet::MAXSIZE_UDP)
 		{
-			struct sockaddr_in a;
-			a.sin_family=AF_INET;
-			a.sin_port=htons(port);
-			a.sin_addr=ip.m_Addr;
-			socklen_t len=sizeof(a);
-			if(sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len) >= 0) return true;
+			bytes=sendto(m_Fd, (char*)p.M_RawData(), C_Packet::MAXSIZE_UDP, 0, (struct sockaddr*)&a, len);
+			p.M_Pop(C_Packet::MAXSIZE_UDP);
+			if(bytes<=0) return false;
 		}
-		return false;
+		bytes=sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len);
+		if(bytes<=0) return false;
 	}
 	
 	void C_TcpSocket::M_Connect()

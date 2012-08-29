@@ -24,7 +24,8 @@ namespace dtglib
 				RequestUpdate
 			};
 
-			static const size_t 		MAXSIZE=262144;
+			static const size_t	MAXSIZE_UDP=1024;
+			static const size_t 	MAXSIZE=262144;
 			C_Packet() {}
 			C_Packet(const C_Packet& rhs);
 			C_Packet& 	operator=(const C_Packet& rhs);
