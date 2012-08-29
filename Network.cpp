@@ -112,7 +112,7 @@ namespace dtglib
 
 	bool C_UdpSocket::M_Receive(C_Packet& p, C_IpAddress* ip, ushort* port)
 	{
-		uchar buf[C_Packet::MAXSIZE_UDP];
+		uchar buf[C_Packet::MAXSIZE];
 		struct sockaddr_in a;
 		socklen_t len=sizeof(a);
 		ssize_t r=recvfrom(m_Fd, (char*)buf, C_Packet::MAXSIZE_UDP, 0, (struct sockaddr*)&a, &len);
@@ -159,7 +159,7 @@ namespace dtglib
 		}
 		bytes=sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len);
 		if(bytes<=0) return false;
-		return false;
+		return true;
 	}
 
 	bool C_UdpSocket::M_Send(C_Packet& p, const C_IpAddress& ip, ushort port)
@@ -179,6 +179,7 @@ namespace dtglib
 		}
 		bytes=sendto(m_Fd, (char*)p.M_RawData(), p.M_Size(), 0, (struct sockaddr*)&a, len);
 		if(bytes<=0) return false;
+		return true;
 	}
 	
 	void C_TcpSocket::M_Connect()

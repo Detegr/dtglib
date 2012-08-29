@@ -48,6 +48,7 @@ namespace dtglib
 				{
 					*this << *it;
 				}
+				return *this;
 			}
 
 			template <class type> C_Packet&	operator<<(type x)
