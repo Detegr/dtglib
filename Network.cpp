@@ -6,7 +6,7 @@
 
 namespace dtglib
 {
-	C_Socket::C_Socket(const C_IpAddress& ip, ushort port, C_Socket::Type type) : m_Fd(0), m_Id(0), m_Ip(ip), m_Port(port), m_NetPort(htons(port)), m_Type(type)
+	C_Socket::C_Socket(const C_IpAddress& ip, ushort port, C_Socket::Type type) : m_Fd(-1), m_Id(0), m_Ip(ip), m_Port(port), m_NetPort(htons(port)), m_Type(type)
 	{
 		m_Fd=socket(AF_INET, type, type==TCP ? IPPROTO_TCP : IPPROTO_UDP);
 		if(m_Fd<=0) throw std::runtime_error("Failed to create socket.");
@@ -24,7 +24,7 @@ namespace dtglib
 		#endif
 	}
 	
-	C_Socket::C_Socket(ushort port, Type type) : m_Fd(0), m_Id(0), m_Ip(), m_Port(port), m_NetPort(htons(port)), m_Type(type)
+	C_Socket::C_Socket(ushort port, Type type) : m_Fd(-1), m_Id(0), m_Ip(), m_Port(port), m_NetPort(htons(port)), m_Type(type)
 	{
 		m_Fd=socket(AF_INET, type, type==TCP ? IPPROTO_TCP : IPPROTO_UDP);
 		if(m_Fd<=0) throw std::runtime_error(g_SocketError("Socket"));
@@ -78,7 +78,7 @@ namespace dtglib
 	
 	void C_TcpSocket::M_Disconnect()
 	{
-	    if(this->m_Fd>0) M_Close();
+	    if(this->m_Fd>=0) M_Close();
 	}
 	
 	void C_TcpSocket::M_Clear()

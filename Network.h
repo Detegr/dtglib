@@ -78,7 +78,7 @@ namespace dtglib
 			int		m_Type;
 			sockaddr_in	m_Addr;
 	
-			C_Socket() : m_Id(0) {}
+			C_Socket() : m_Fd(-1), m_Id(0), m_Port(0), m_NetPort(0) {}
 		public:
 			enum Type
 			{
