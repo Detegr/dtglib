@@ -182,15 +182,17 @@ namespace dtglib
 		return true;
 	}
 	
-	void C_TcpSocket::M_Connect()
+	bool C_TcpSocket::M_Connect()
 	{
 		int ret=-1;
 		socklen_t len=sizeof(m_Addr);
 		ret=connect(m_Fd, (sockaddr*)&m_Addr, len);
 		if(ret<0)
 		{
+			if(errno==EINPROGRESS) return false;
 			throw std::runtime_error("Connection refused");
 		}
+		return true;
 	}
 	
 	bool C_TcpSocket::M_Send(C_Packet& p)

@@ -110,7 +110,7 @@ namespace dtglib
 			C_TcpSocket(ushort port) : C_Socket(port, TCP) {}
 			C_TcpSocket*	M_Accept(); 
 			void 		M_Listen(int maxfds=10);
-			void 		M_Connect();
+			bool 		M_Connect();
 			void 		M_Disconnect();
 			void 		M_Clear();
 			bool		M_Send(C_Packet& p); 
