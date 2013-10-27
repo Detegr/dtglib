@@ -34,9 +34,6 @@ namespace dtglib
 		m_Addr.sin_addr.s_addr=htonl(INADDR_ANY);
 		int yes=1;
 		int ret=0;
-		struct timeval tv;
-		tv.tv_sec=5;
-		tv.tv_usec=0;
 		ret=setsockopt(m_Fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
 		assert(ret==0);
 		#ifdef __APPLE__
@@ -104,7 +101,6 @@ namespace dtglib
 		struct timeval tv;
 		tv.tv_sec=timeoutms/1000;
 		tv.tv_usec=(timeoutms%1000)*1000;
-		ssize_t bytes=-1;
 		int ret=select(m_Fd+1, &set, NULL, NULL, &tv);
 		if(ret>0 && FD_ISSET(m_Fd, &set)) return M_Receive(p);
 		else return false;
